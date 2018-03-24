@@ -1,4 +1,5 @@
 import re
+import sys
 import argparse
 import os
 import pickle
@@ -25,19 +26,22 @@ def parse_sentence(line, all_collocations, frequencies):
     sentences = line.split('. ')
     for sentence in sentences:
         parse_words = re.sub(r"[^\w]", ' ', sentence)
-        if args.lc:
-            parse_words = parse_words.lower()
+        parse_words = parse_words.lower()
         words = [BEGIN] + parse_words.split() + [END]
         if len(words) < 3:
             continue
         make_stat(all_collocations, words, frequencies)
 
 
-parser = argparse.ArgumentParser(description="Hi, Wokinshopash!", epilog="You're nice! Goodbye.")
-parser.add_argument('--input-dir', type=str, nargs=1, default='stdin', help='')
+parser = argparse.ArgumentParser(description="Hi!", epilog="You're nice! Goodbye.")
+parser.add_argument('--input-dir', type=str, nargs=1, default=['stdin'], help='')
 parser.add_argument('--model', required=True, type=str, nargs=1, default='statistics.out', help='')
-parser.add_argument('--lc', nargs=1)
 args = parser.parse_args()
+
+BEGIN = '*BEGIN*'
+END = '*END*'
+ALL_COLLOCATIONS = {END: {BEGIN: 1}}
+FREQUENCIES = {END: 1}
 
 DIR = args.input_dir[0]
 if DIR != 'stdin':
@@ -49,13 +53,6 @@ if DIR != 'stdin':
 
     TXT_FILES = filter(lambda x: x.endswith('.txt'), FILES)
 
-
-BEGIN = '*BEGIN*'
-END = '*END*'
-ALL_COLLOCATIONS = {END: {BEGIN: 1}}
-FREQUENCIES = {END: 1}
-
-if DIR != 'stdin':
     flag = True
     for filename in TXT_FILES:
         flag = False
@@ -66,13 +63,16 @@ if DIR != 'stdin':
         print("There're no txt-files in directory.")
         exit(1)
 else:
-    string = input()
-    parse_sentence(string)
+    lines = sys.stdin.read().split('\n')
+    for new_line in lines:
+        parse_sentence(new_line, ALL_COLLOCATIONS, FREQUENCIES)
 
 for word1, dict1 in ALL_COLLOCATIONS.items():
     frequency = FREQUENCIES[word1]
     for word2 in dict1.keys():
         dict1[word2] /= frequency
+
+print(ALL_COLLOCATIONS)
 
 FOUT = open(args.model[0], mode='wb')
 pickle.dump(ALL_COLLOCATIONS, FOUT)
