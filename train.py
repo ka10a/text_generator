@@ -22,7 +22,7 @@ def make_stat(statistic, parts, statistics):
             statistic[word] = {next_word: 1}
 
 
-def parse_sentence(line, all_collocations, frequencies):
+def parse_line(line, all_collocations, frequencies):
     sentences = line.split('. ')
     for sentence in sentences:
         parse_words = re.sub(r"[^\w]", ' ', sentence)
@@ -34,8 +34,10 @@ def parse_sentence(line, all_collocations, frequencies):
 
 
 parser = argparse.ArgumentParser(description="Hi!", epilog="You're nice! Goodbye.")
-parser.add_argument('--input-dir', type=str, nargs=1, default=['stdin'], help='')
-parser.add_argument('--model', required=True, type=str, nargs=1, default='statistics.out', help='')
+parser.add_argument('--input-dir', type=str, nargs=1, default=['stdin'],
+                    help='Way to directory, where your txt-files is, or stdin flow')
+parser.add_argument('--model', required=True, type=str, nargs=1, default='statistics.out',
+                    help="Way to file with it's name, where model will be written")
 args = parser.parse_args()
 
 BEGIN = '*BEGIN*'
@@ -58,29 +60,20 @@ if DIR != 'stdin':
         flag = False
         fin = open(filename, "r")
         for new_line in fin.readlines():
-            parse_sentence(new_line, ALL_COLLOCATIONS, FREQUENCIES)
+            parse_line(new_line, ALL_COLLOCATIONS, FREQUENCIES)
     if flag:
         print("There're no txt-files in directory.")
         exit(1)
 else:
     lines = sys.stdin.read().split('\n')
     for new_line in lines:
-        parse_sentence(new_line, ALL_COLLOCATIONS, FREQUENCIES)
+        parse_line(new_line, ALL_COLLOCATIONS, FREQUENCIES)
 
 for word1, dict1 in ALL_COLLOCATIONS.items():
     frequency = FREQUENCIES[word1]
     for word2 in dict1.keys():
         dict1[word2] /= frequency
 
-print(ALL_COLLOCATIONS)
-
 FOUT = open(args.model[0], mode='wb')
 pickle.dump(ALL_COLLOCATIONS, FOUT)
 FOUT.close()
-
-"""
-collocations = dict()
-for word1, pairs in all_collocations.items():
-    for word2, stat in pairs.items():
-        print(word1, word2, stat, frequencies[word1], file=FILE_OUT)
-"""
