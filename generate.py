@@ -13,7 +13,7 @@ def is_service_word(word):
 parser = argparse.ArgumentParser(description="Hello another one time.", epilog="")
 parser.add_argument('--model', required=True, type=str, nargs=1,
                     help="Way with file's name to directory, where file with model is.")
-parser.add_argument('--length', type=int, nargs=1, default=7, help='')
+parser.add_argument('--length', type=int, nargs=1, default=[7], help='')
 args = parser.parse_args()
 
 FILE_IN = open(args.model[0], mode='rb')
