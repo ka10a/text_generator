@@ -16,12 +16,14 @@ parser.add_argument('--model', required=True, type=str, nargs=1,
 parser.add_argument('--length', type=int, nargs=1, default=[7], help='')
 args = parser.parse_args()
 
+# Get dict of collocations and statistic
 FILE_IN = open(args.model[0], mode='rb')
 STATISTICS = pickle.load(FILE_IN)
 if type(dict()) != type(STATISTICS):
     print('Wrong file!!!')
     exit(0)
 
+# Generate text word by word
 word1 = '*BEGIN*'
 CNT = args.length[0]
 while CNT > 1:
