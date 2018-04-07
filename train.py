@@ -5,11 +5,9 @@ import os
 import pickle
 
 
-def make_stat(statistic, parts, statistics):
+def update_stat(statistic, parts, statistics):
     # Renew statistic with new words (in list called part)
     for i in range(len(parts) - 1):
-        if len(parts[i]) == 0:
-            continue
         word = parts[i]
         if word not in statistics:
             statistics[word] = 0
@@ -23,36 +21,40 @@ def make_stat(statistic, parts, statistics):
             statistic[word] = {next_word: 1}
 
 
-def parse_line(line, parse_all_collocations, parse_frequencies):
+def parse_line(line, parse_all_collocations, parse_frequencies, lc):
     # Split line to sentences and sentences to words
-    sentences = line.split('. ')
+    sentences = [s for s in re.split("\.|!|\?", line) if len(s) > 0]
     for sentence in sentences:
         parse_words = re.sub(r"[^\w]", ' ', sentence)
-        parse_words = parse_words.lower()
+        if lc:
+            parse_words = parse_words.lower()
         words = [BEGIN] + parse_words.split() + [END]
         if len(words) < 3:
             continue
-        make_stat(parse_all_collocations, words, parse_frequencies)
+        update_stat(parse_all_collocations, words, parse_frequencies)
 
 
 parser = argparse.ArgumentParser(description="Hi!", epilog="You're nice! Goodbye.")
-parser.add_argument('--input-dir', type=str, nargs=1, default=['stdin'],
+parser.add_argument('--input-dir', type=str, nargs=1,
                     help='Way to directory, where your txt-files is, or stdin flow')
 parser.add_argument('--model', required=True, type=str, nargs=1, default='statistics.out',
                     help="Way to file with it's name, where model will be written")
+parser.add_argument('--lc', action="store_true",
+                    help="If you want words in lowercase.")
 args = parser.parse_args()
 
-BEGIN = '*BEGIN*'
-END = '*END*'
-all_collocations = {END: {BEGIN: 1}}
-frequencies = {END: 1}
+BEGIN = END = None
+all_collocations = {}
+frequencies = {None: 1}
+lc = args.lc
 
 # Read txt-files and count frequencies
-DIR = args.input_dir[0]
-if DIR != 'stdin':
+input_directory = args.input_dir
+if input_directory is not None:
+    input_directory = input_directory[0]
     # Make a list of names of txt-files in input-dir
     try:
-        FILES = os.listdir(DIR)
+        FILES = os.listdir(input_directory)
     except OSError:
         print("Directory doesn't exist.")
         exit(1)
@@ -72,7 +74,7 @@ else:
     # Read from stdin flow
     lines = sys.stdin.read().split('\n')
     for new_line in lines:
-        parse_line(new_line, all_collocations, frequencies)
+        parse_line(new_line, all_collocations, frequencies, lc)
 
 # Normalize frequencies of collocations
 for word1, dict1 in all_collocations.items():
@@ -81,6 +83,6 @@ for word1, dict1 in all_collocations.items():
         dict1[word2] /= frequency
 
 # Write dict of collocations in file
-FOUT = open(args.model[0], mode='wb')
-pickle.dump(all_collocations, FOUT)
-FOUT.close()
+fout = open(args.model[0], mode='wb')
+pickle.dump(all_collocations, fout)
+fout.close()
