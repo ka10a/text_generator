@@ -23,12 +23,13 @@ def update_stat(statistic, parts, statistics):
 
 def parse_line(line, parse_all_collocations, parse_frequencies, lc):
     # Split line to sentences and sentences to words
+    _begin_ = _end_ = None
     sentences = [s for s in re.split("\.|!|\?", line) if len(s) > 0]
     for sentence in sentences:
         parse_words = re.sub(r"[^\w]", ' ', sentence)
         if lc:
             parse_words = parse_words.lower()
-        words = [BEGIN] + parse_words.split() + [END]
+        words = [_begin_] + parse_words.split() + [_end_]
         if len(words) < 3:
             continue
         update_stat(parse_all_collocations, words, parse_frequencies)
@@ -59,13 +60,13 @@ def reading(in_directory, all_colloc, freq, lc):
             exist_txt_files = False
             fin = open(filename, "r")
             for new_line in fin:
-                parse_line(new_line, all_colloc, freq)
+                parse_line(new_line, all_colloc, freq, lc)
         if exist_txt_files:
             print("There're no txt-files in directory.")
             exit(1)
     else:
         # Read from stdin flow
-        for new_line in sys.stdin.read():
+        for new_line in sys.stdin:
             parse_line(new_line, all_colloc, freq, lc)
 
     return all_colloc, freq
@@ -77,7 +78,7 @@ def main():
                         help='Way to directory, where your txt-files is, or stdin flow')
     parser.add_argument('--model', required=True, type=str, nargs=1, default='statistics.out',
                         help="Way to file with it's name, where model will be written")
-    parser.add_argument('--lc', action="store_true",
+    parser.add_argument('--lc', action="store_true", default=False,
                         help="If you want words in lowercase.")
     args = parser.parse_args()
 

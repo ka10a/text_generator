@@ -25,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser(description="Hello another one time.", epilog="")
     parser.add_argument('--model', required=True, type=str, nargs=1,
                         help="Way with file's name to directory, where file with model is.")
-    parser.add_argument('--length', type=int, help='Length of text what you want.')
+    parser.add_argument('--length', type=int, default=10, help='Length of text what you want.')
     parser.add_argument('--seed', type=str, nargs=1, default=[None], help="First word")
     args = parser.parse_args()
 
