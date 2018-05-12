@@ -11,7 +11,7 @@ def is_service_word(word):
 def read_stat(arguments):
     # Generate text word by word
     # Get dict of collocations and statistic
-    file_in = open(arguments.model[0], mode='rb')
+    file_in = open(arguments.model, mode='rb')
     stat = pickle.load(file_in)
 
     if not isinstance(stat, dict):
@@ -23,23 +23,22 @@ def read_stat(arguments):
 
 def main():
     parser = argparse.ArgumentParser(description="Hello another one time.", epilog="")
-    parser.add_argument('--model', required=True, type=str, nargs=1,
+    parser.add_argument('--model', required=True, type=str,
                         help="Way with file's name to directory, where file with model is.")
     parser.add_argument('--length', type=int, default=10, help='Length of text what you want.')
-    parser.add_argument('--seed', type=str, nargs=1, default=[None], help="First word")
+    parser.add_argument('--seed', type=str, default=None, help="First word")
     args = parser.parse_args()
 
-
     statistics = read_stat(args)
-    word1 = args.seed[0]
+    word1 = args.seed
     if word1 not in statistics.keys():
         print("There is no word '{}'.".format(word1))
         exit(1)
 
-    CNT = args.length
+    count_of_words = args.length
     if word1 is not None:
         print(word1, end='')
-    for _ in range(CNT, 1, -1):
+    for _ in range(count_of_words, 1, -1):
         word2 = numpy.random.choice(list(statistics[word1].keys()), 1, list(statistics[word1].values()))[0]
         if is_service_word(word2):
             print('.', end='')

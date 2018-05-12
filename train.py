@@ -44,21 +44,21 @@ def reading(in_directory, all_colloc, freq, lc):
     :param lc: if lower case is needed
     :return: dict of collocations and dict of frequencies
     """
+
     if in_directory is not None:
-        in_directory = in_directory[0]
+        in_directory = in_directory
         # Make a list of names of txt-files in input-dir
-        try:
-            files = os.listdir(in_directory)
-        except OSError:
+        if not os.path.exists(in_directory):
             print("Directory doesn't exist.")
             exit(1)
+        files = os.listdir(in_directory)
         txt_files = filter(lambda x: x.endswith('.txt'), files)
 
         # Read from each file
         exist_txt_files = True
         for filename in txt_files:
             exist_txt_files = False
-            fin = open(filename, "r")
+            fin = open(os.path.join(in_directory, filename), "r")
             for new_line in fin:
                 parse_line(new_line, all_colloc, freq, lc)
         if exist_txt_files:
@@ -74,15 +74,14 @@ def reading(in_directory, all_colloc, freq, lc):
 
 def main():
     parser = argparse.ArgumentParser(description="Hi!", epilog="You're nice! Goodbye.")
-    parser.add_argument('--input-dir', type=str, nargs=1,
+    parser.add_argument('--input-dir', type=str,
                         help='Way to directory, where your txt-files is, or stdin flow')
-    parser.add_argument('--model', required=True, type=str, nargs=1, default='statistics.out',
+    parser.add_argument('--model', required=True, type=str, default='statistics.out',
                         help="Way to file with it's name, where model will be written")
     parser.add_argument('--lc', action="store_true", default=False,
                         help="If you want words in lowercase.")
     args = parser.parse_args()
 
-    BEGIN = END = None
     all_collocations = {}
     frequencies = {None: 1}
     lower_case = args.lc
@@ -97,7 +96,7 @@ def main():
             dict1[word2] /= frequency
 
     # Write dict of collocations in file
-    fout = open(args.model[0], mode='wb')
+    fout = open(args.model, mode='wb')
     pickle.dump(all_collocations, fout)
     fout.close()
 
